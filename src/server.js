@@ -39,6 +39,6 @@ app.use((error, req, res, next) => {
   //fim tratamento de erro dentro do SERVIDOR
 });
 
-const PORT = process.env.SERVER_PORT;
+const PORT = process.env.SERVER_PORT || 3333;
 
 app.listen(PORT, () => console.log(`server online 🚀 ${PORT}`));
