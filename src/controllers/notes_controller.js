@@ -68,6 +68,7 @@ class notes_controller {
         .whereLike("title", `%${title}%`) //whereLike()
         .whereIn("name", filterTags)
         .innerJoin("notes", "notes.id", "tags.note_id") //innerJoin conectar as tabelas
+        .groupBy('notes.title')
         .orderBy("notes.title"); // orderBy ordernar() pelos tirulos da nota
     } else {
       notes = await knex("notes")

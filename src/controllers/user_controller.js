@@ -23,7 +23,7 @@ class user_controller {
 
     //checando se há usuario com o mesmo email cadastrado
     if (checkUserExist) {
-      throw new AppError("esse email já está em uso");
+      throw new AppError("O email informado já está em uso por outro usuario");
     }
     //fim do check do email
 
@@ -40,7 +40,7 @@ class user_controller {
 
     //tratamento de erro
     if (!name) {
-      throw new AppError("nome é obrigatório");
+      throw new AppError("Nome é obrigatório");
     }
     //fim do tratamento de erro
     return res.status(201).json();
@@ -66,7 +66,7 @@ class user_controller {
 
     //arrumar
     if (checkUpdateEmailExist && checkUpdateEmailExist.id !== user.id) {
-      throw new AppError("este email já esta em uso");
+      throw new AppError("Este email já esta em uso.");
     }
 
     user.name = name ?? user.name;
@@ -74,14 +74,14 @@ class user_controller {
 
 
     if(password && !old_pass){
-      throw new AppError('informe a senha antiga')
+      throw new AppError('Informe a senha antiga.')
     }
 
     if(password && old_pass){
       const  checkOldPass = await compare(old_pass, user.password)
 
       if(!checkOldPass){
-        throw new AppError('a senha antiga nao confere')
+        throw new AppError('Senha antiga não confere')
       }
 
       user.password = await hash(password, 8)

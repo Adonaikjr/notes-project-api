@@ -1,21 +1,24 @@
 require("express-async-errors");
+require("dotenv/config");
 const AppError = require("./utils/AppError");
 
 const express = require("express");
 const MigrationsStart = require("./database/sqlite/migrations");
-const uploadConfig = require('./configs/upload')
-
+const uploadConfig = require("./configs/upload");
+const cors = require("cors");
 const routes = require("./routes");
 const app = express();
-
+//conecct express
 app.use(express.json());
-
-app.use('/files', express.static(uploadConfig.UPLOAD_FOLDER))
-
+//connect front
+app.use(cors());
+//servindo arquivo de imagem
+app.use("/files", express.static(uploadConfig.UPLOAD_FOLDER));
+//connect routes
 app.use(routes);
-
+//migrations knex
 MigrationsStart();
-
+//tratamento de erro
 app.use((error, req, res, next) => {
   //tratamento de erro do USUARIO
   if (error instanceof AppError) {
@@ -36,5 +39,6 @@ app.use((error, req, res, next) => {
   //fim tratamento de erro dentro do SERVIDOR
 });
 
-const PORT = 3333;
+const PORT = process.env.SERVER_PORT;
+
 app.listen(PORT, () => console.log(`server online 🚀 ${PORT}`));
