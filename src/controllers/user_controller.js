@@ -1,6 +1,7 @@
 const { hash, compare } = require("bcryptjs");
 const AppError = require("../utils/AppError");
-
+const user_repositories = require("../repositories/user_repositories");
+const user_service = require("../services/user_service");
 const sqliteConnection = require("../database/sqlite");
 
 class user_controller {
@@ -8,41 +9,12 @@ class user_controller {
   async createUser(req, res) {
     //pegando valores do body
     const { name, email, password } = req.body;
-    //fim da captura de valores
 
-    //conexão com o banco de dados
-    const database = await sqliteConnection();
-    //fim da conecxão com banco de dados
+    const userRepositories = new user_repositories();
+    const userService = new user_service(userRepositories);
+    
+    await userService.execute({ name, email, password });
 
-    //buscando email existente no banco de dados
-    const checkUserExist = await database.get(
-      "SELECT * FROM users WHERE email = (?)",
-      [email]
-    );
-    //fim buscando email
-
-    //checando se há usuario com o mesmo email cadastrado
-    if (checkUserExist) {
-      throw new AppError("O email informado já está em uso por outro usuario");
-    }
-    //fim do check do email
-
-    //criptografia from password
-    const bcryptjs_hash_password = await hash(password, 8);
-    //end criptograf password
-
-    //inserindo informações (REGISTROS) no banco de dados
-    await database.run(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, bcryptjs_hash_password]
-    );
-    //fim da inserção
-
-    //tratamento de erro
-    if (!name) {
-      throw new AppError("Nome é obrigatório");
-    }
-    //fim do tratamento de erro
     return res.status(201).json();
   }
   //fim criação do usuario
@@ -53,7 +25,9 @@ class user_controller {
     const user_id = req.user.id;
 
     const database = await sqliteConnection();
-    const user = await database.get("SELECT * FROM users WHERE id =(?)", [user_id]);
+    const user = await database.get("SELECT * FROM users WHERE id =(?)", [
+      user_id,
+    ]);
 
     if (!user) {
       throw new AppError("Este usuario não foi encontrado");
@@ -72,19 +46,18 @@ class user_controller {
     user.name = name ?? user.name;
     user.email = email ?? user.email;
 
-
-    if(password && !old_pass){
-      throw new AppError('Informe a senha antiga.')
+    if (password && !old_pass) {
+      throw new AppError("Informe a senha antiga.");
     }
 
-    if(password && old_pass){
-      const  checkOldPass = await compare(old_pass, user.password)
+    if (password && old_pass) {
+      const checkOldPass = await compare(old_pass, user.password);
 
-      if(!checkOldPass){
-        throw new AppError('Senha antiga não confere')
+      if (!checkOldPass) {
+        throw new AppError("Senha antiga não confere");
       }
 
-      user.password = await hash(password, 8)
+      user.password = await hash(password, 8);
     }
 
     await database.run(
@@ -95,7 +68,7 @@ class user_controller {
     password = ?,
     updated_at = DATETIME('now')
     WHERE id = ?`,
-      [user.name, user.email, user.password, user_id] 
+      [user.name, user.email, user.password, user_id]
     );
 
     return res.status(200).json();
